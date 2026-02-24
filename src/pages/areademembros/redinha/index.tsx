@@ -53,10 +53,6 @@ function saveProgress(completed: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
 }
 
-function isMp4Url(url: string): boolean {
-  return /\.mp4(\?|$)/i.test(url) || url.includes("play_1080p.mp4");
-}
-
 const ModuleList = ({
   openModules,
   toggleModule,
@@ -312,24 +308,15 @@ const Redinha = () => {
               {activeLesson.type === "video" ? (
                 <div className="relative">
                   {activeLesson.videoUrl ? (
-                    <div className="aspect-video bg-black">
-                      {isMp4Url(activeLesson.videoUrl) ? (
-                        <video
-                          src={activeLesson.videoUrl}
-                          controls
-                          playsInline
-                          className="w-full h-full"
-                          title={activeLesson.title}
-                        />
-                      ) : (
-                        <iframe
-                          src={activeLesson.videoUrl}
-                          title={activeLesson.title}
-                          className="w-full h-full"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                        />
-                      )}
+                    <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+                      <iframe
+                        src={activeLesson.videoUrl}
+                        title={activeLesson.title}
+                        className="absolute inset-0 w-full h-full border-0"
+                        loading="lazy"
+                        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
                     </div>
                   ) : (
                     <div className="aspect-video bg-gradient-to-br from-rose-900 to-amber-900 flex flex-col items-center justify-center text-white gap-4">
