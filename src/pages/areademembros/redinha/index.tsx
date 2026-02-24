@@ -22,6 +22,10 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import {
   courseModulesRedinha,
   totalLessonsRedinha,
   totalVideosRedinha,
@@ -170,6 +174,7 @@ const Redinha = () => {
   const [activeModule, setActiveModule] = useState<CourseModule>(courseModules[0]);
   const [completed, setCompleted] = useState<Set<string>>(loadProgress);
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [welcomeOpen, setWelcomeOpen] = useState(true);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { saveProgress(completed); }, [completed]);
@@ -228,6 +233,16 @@ const Redinha = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20 lg:pb-0">
+      <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
+        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden border-0 shadow-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:bg-black/40 [&>button]:text-white [&>button]:hover:bg-black/60 [&>button]:rounded-full">
+          <img
+            src="/images/boasvindas.jpeg"
+            alt="Bem-vinda à comunidade Redinhas Pet!"
+            className="w-full h-auto rounded-lg"
+          />
+        </DialogContent>
+      </Dialog>
+
       <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
