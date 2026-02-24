@@ -1,0 +1,114 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Poppins:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 33% 94%;
+    --foreground: 16 22% 20%;
+
+    --card: 30 33% 97%;
+    --card-foreground: 16 22% 20%;
+
+    --popover: 30 33% 97%;
+    --popover-foreground: 16 22% 20%;
+
+    --primary: 145 45% 32%;
+    --primary-foreground: 30 33% 97%;
+
+    --secondary: 43 85% 55%;
+    --secondary-foreground: 16 22% 20%;
+
+    --muted: 30 20% 88%;
+    --muted-foreground: 16 10% 45%;
+
+    --accent: 145 45% 32%;
+    --accent-foreground: 30 33% 97%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 22 28% 75%;
+    --input: 22 28% 75%;
+    --ring: 145 45% 32%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --highlight: 43 85% 55%;
+    --highlight-foreground: 16 22% 20%;
+    --success: 145 45% 32%;
+    --success-light: 145 40% 95%;
+    --warm: 25 80% 52%;
+    --warm-foreground: 30 33% 97%;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Poppins', sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Playfair Display', serif;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: 'Playfair Display', serif;
+  }
+  .font-body {
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+@keyframes section-glow {
+  0% { box-shadow: 0 0 0 0 hsl(145 45% 32% / 0); }
+  30% { box-shadow: 0 0 30px 4px hsl(145 45% 32% / 0.25); }
+  100% { box-shadow: 0 0 0 0 hsl(145 45% 32% / 0); }
+}
+
+.section-glow {
+  animation: section-glow 1s ease-out;
+}
+
+@keyframes cta-breathe {
+  0%, 100% {
+    box-shadow: 0 4px 20px hsl(145 45% 32% / 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px hsl(145 45% 32% / 0.5);
+  }
+}
+
+@keyframes glow-border {
+  0%, 100% { border-color: hsl(145 45% 32% / 0.3); }
+  50% { border-color: hsl(145 45% 32% / 0.6); }
+}
+
+@keyframes price-pop {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
