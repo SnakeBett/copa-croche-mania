@@ -253,28 +253,28 @@ const NavButtons = ({
   onPrev: () => void;
   onNext: () => void;
 }) => (
-  <div className="flex gap-3">
+  <div className="grid grid-cols-2 gap-3">
     <button
       onClick={onPrev}
       disabled={!prev}
-      className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 min-h-[48px] text-left transition-all touch-manipulation disabled:opacity-40"
+      className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-3 py-3 min-h-[56px] text-left transition-all touch-manipulation disabled:opacity-40"
     >
       <ChevronLeft className="w-5 h-5 text-gray-400 shrink-0" />
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 overflow-hidden">
         <p className="text-[10px] text-gray-400 uppercase tracking-wide">Anterior</p>
-        <p className="font-semibold text-xs text-gray-700 truncate">{prev ?? "---"}</p>
+        <p className="font-semibold text-xs text-gray-700 line-clamp-2 leading-tight">{prev ?? "---"}</p>
       </div>
     </button>
     <button
       onClick={onNext}
       disabled={!next}
-      className={`flex-1 flex items-center gap-2 rounded-xl px-4 min-h-[48px] text-right transition-all touch-manipulation disabled:opacity-40 ${
+      className={`flex items-center gap-2 rounded-xl px-3 py-3 min-h-[56px] text-right transition-all touch-manipulation disabled:opacity-40 ${
         isDone && next ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md" : "bg-white border border-gray-200"
       }`}
     >
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 overflow-hidden flex-1">
         <p className={`text-[10px] uppercase tracking-wide ${isDone && next ? "text-white/70" : "text-gray-400"}`}>Próxima</p>
-        <p className={`font-semibold text-xs truncate ${isDone && next ? "text-white" : "text-gray-700"}`}>{next ?? "---"}</p>
+        <p className={`font-semibold text-xs line-clamp-2 leading-tight ${isDone && next ? "text-white" : "text-gray-700"}`}>{next ?? "---"}</p>
       </div>
       <ChevronRight className={`w-5 h-5 shrink-0 ${isDone && next ? "text-white/70" : "text-gray-400"}`} />
     </button>
