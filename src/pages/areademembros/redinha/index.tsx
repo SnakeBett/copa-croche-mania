@@ -9,16 +9,9 @@ import {
   BookOpen,
   Video,
   CheckCircle2,
-  List,
   Trophy,
 } from "lucide-react";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -51,7 +44,133 @@ function saveProgress(completed: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
 }
 
-const ModuleList = ({
+const ProgressRing = ({ percent, size = 40 }: { percent: number; size?: number }) => {
+  const r = (size - 6) / 2;
+  const circ = 2 * Math.PI * r;
+  const offset = circ - (percent / 100) * circ;
+  return (
+    <svg width={size} height={size} className="shrink-0 -rotate-90">
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} className="text-border/40" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" className="text-accent transition-all duration-700" />
+    </svg>
+  );
+};
+
+const MobileModuleList = ({
+  openModules,
+  toggleModule,
+  completed,
+  toggleCompleted,
+  activeLesson,
+  selectLesson,
+}: {
+  openModules: string[];
+  toggleModule: (id: string) => void;
+  completed: Set<string>;
+  toggleCompleted: (id: string) => void;
+  activeLesson: Lesson;
+  selectLesson: (mod: CourseModule, lesson: Lesson) => void;
+}) => (
+  <div className="space-y-3">
+    {courseModules.map((mod) => {
+      const isOpen = openModules.includes(mod.id);
+      const modCompleted = mod.lessons.filter((l) => completed.has(l.id)).length;
+      const modProgress = mod.lessons.length > 0 ? (modCompleted / mod.lessons.length) * 100 : 0;
+      const isModDone = modCompleted === mod.lessons.length;
+
+      return (
+        <div
+          key={mod.id}
+          className={`rounded-2xl border overflow-hidden shadow-sm transition-all ${
+            isModDone ? "border-accent/40 bg-accent/5" : "border-border bg-card"
+          }`}
+        >
+          <button
+            onClick={() => toggleModule(mod.id)}
+            className="w-full flex items-center gap-4 px-4 py-4 active:bg-muted/30 transition-colors text-left touch-manipulation"
+          >
+            <div className="relative shrink-0">
+              <ProgressRing percent={modProgress} size={48} />
+              <span className="absolute inset-0 flex items-center justify-center text-xl">
+                {isModDone ? "✅" : mod.icon}
+              </span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-body font-bold text-foreground text-[15px] leading-snug">
+                {mod.title}
+              </p>
+              <p className="text-xs text-muted-foreground font-body mt-0.5 truncate">{mod.description}</p>
+              <p className="text-[11px] text-muted-foreground/70 font-body mt-1">
+                {modCompleted}/{mod.lessons.length} aulas concluídas
+              </p>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+          </button>
+
+          {isOpen && (
+            <div className="border-t border-border/60 bg-muted/20">
+              {mod.lessons.map((lesson, idx) => {
+                const isActive = activeLesson.id === lesson.id;
+                const isDone = completed.has(lesson.id);
+                return (
+                  <div
+                    key={lesson.id}
+                    className={`flex items-center gap-3 px-4 min-h-[56px] py-3 transition-colors font-body cursor-pointer touch-manipulation ${
+                      idx < mod.lessons.length - 1 ? "border-b border-border/30" : ""
+                    } ${
+                      isActive
+                        ? "bg-accent/10"
+                        : "active:bg-muted/40"
+                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => selectLesson(mod, lesson)}
+                    onKeyDown={(e) => { if (e.key === "Enter") selectLesson(mod, lesson); }}
+                  >
+                    <span
+                      role="checkbox"
+                      aria-checked={isDone}
+                      tabIndex={0}
+                      className="shrink-0 touch-manipulation"
+                      onClick={(e) => { e.stopPropagation(); toggleCompleted(lesson.id); }}
+                      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleCompleted(lesson.id); } }}
+                    >
+                      <CheckCircle2
+                        className={`w-5 h-5 transition-colors ${
+                          isDone ? "text-accent fill-accent/20" : "text-border"
+                        }`}
+                      />
+                    </span>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                      isActive ? "bg-accent/20" : "bg-muted/60"
+                    }`}>
+                      {lesson.type === "video" ? (
+                        <Play className={`w-4 h-4 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
+                      ) : (
+                        <FileText className={`w-4 h-4 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <span className={`block text-sm leading-snug ${isActive ? "text-accent font-semibold" : "text-foreground"}`}>
+                        {lesson.title}
+                      </span>
+                      {lesson.duration && (
+                        <span className="text-[11px] text-muted-foreground">{lesson.duration}</span>
+                      )}
+                    </div>
+                    {isActive && <div className="w-1.5 h-8 bg-accent rounded-full shrink-0" />}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      );
+    })}
+  </div>
+);
+
+const DesktopModuleList = ({
   openModules,
   toggleModule,
   completed,
@@ -86,28 +205,16 @@ const ModuleList = ({
           >
             <span className="text-2xl shrink-0">{isModDone ? "✅" : mod.icon}</span>
             <div className="flex-1 min-w-0">
-              <p className="font-body font-semibold text-foreground text-sm truncate">
-                {mod.title}
-              </p>
+              <p className="font-body font-semibold text-foreground text-sm truncate">{mod.title}</p>
               <div className="flex items-center gap-2 mt-1">
                 <div className="flex-1 h-1.5 bg-border/50 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent rounded-full transition-all duration-500"
-                    style={{ width: `${modProgress}%` }}
-                  />
+                  <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${modProgress}%` }} />
                 </div>
-                <span className="text-[10px] text-muted-foreground font-body shrink-0">
-                  {modCompleted}/{mod.lessons.length}
-                </span>
+                <span className="text-[10px] text-muted-foreground font-body shrink-0">{modCompleted}/{mod.lessons.length}</span>
               </div>
             </div>
-            {isOpen ? (
-              <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />
-            )}
+            {isOpen ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
           </button>
-
           {isOpen && (
             <div className="border-t border-border">
               {mod.lessons.map((lesson) => {
@@ -117,9 +224,7 @@ const ModuleList = ({
                   <div
                     key={lesson.id}
                     className={`flex items-center gap-2 px-4 py-2.5 transition-colors text-sm font-body cursor-pointer ${
-                      isActive
-                        ? "bg-accent/10 text-accent font-semibold"
-                        : "hover:bg-muted/30 text-foreground"
+                      isActive ? "bg-accent/10 text-accent font-semibold" : "hover:bg-muted/30 text-foreground"
                     }`}
                     role="button"
                     tabIndex={0}
@@ -134,23 +239,11 @@ const ModuleList = ({
                       onClick={(e) => { e.stopPropagation(); toggleCompleted(lesson.id); }}
                       onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleCompleted(lesson.id); } }}
                     >
-                      <CheckCircle2
-                        className={`w-4 h-4 transition-colors ${
-                          isDone ? "text-accent fill-accent/20" : "text-border"
-                        }`}
-                      />
+                      <CheckCircle2 className={`w-4 h-4 transition-colors ${isDone ? "text-accent fill-accent/20" : "text-border"}`} />
                     </span>
-                    {lesson.type === "video" ? (
-                      <Play className="w-3.5 h-3.5 shrink-0 text-muted-foreground" />
-                    ) : (
-                      <FileText className="w-3.5 h-3.5 shrink-0 text-secondary" />
-                    )}
+                    {lesson.type === "video" ? <Play className="w-3.5 h-3.5 shrink-0 text-muted-foreground" /> : <FileText className="w-3.5 h-3.5 shrink-0 text-secondary" />}
                     <span className="flex-1 truncate text-xs">{lesson.title}</span>
-                    {lesson.duration && (
-                      <span className="text-[10px] text-muted-foreground shrink-0">
-                        {lesson.duration}
-                      </span>
-                    )}
+                    {lesson.duration && <span className="text-[10px] text-muted-foreground shrink-0">{lesson.duration}</span>}
                   </div>
                 );
               })}
@@ -167,7 +260,7 @@ const Redinha = () => {
   const [activeLesson, setActiveLesson] = useState<Lesson>(courseModules[0].lessons[0]);
   const [activeModule, setActiveModule] = useState<CourseModule>(courseModules[0]);
   const [completed, setCompleted] = useState<Set<string>>(loadProgress);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [mobileTab, setMobileTab] = useState<"modulos" | "aula">("modulos");
   const [welcomeOpen, setWelcomeOpen] = useState(true);
   const navRef = useRef<HTMLDivElement>(null);
 
@@ -183,9 +276,13 @@ const Redinha = () => {
     setActiveLesson(lesson);
     setActiveModule(mod);
     setOpenModules((prev) => prev.includes(mod.id) ? prev : [...prev, mod.id]);
-    setDrawerOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
+
+  const selectLessonAndSwitchToAula = useCallback((mod: CourseModule, lesson: Lesson) => {
+    selectLesson(mod, lesson);
+    setMobileTab("aula");
+  }, [selectLesson]);
 
   const toggleCompleted = useCallback((lessonId: string) => {
     setCompleted((prev) => {
@@ -226,7 +323,7 @@ const Redinha = () => {
   const totalPdfs = totalPdfsRedinha;
 
   return (
-    <div className="min-h-screen bg-background pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0 overflow-x-hidden">
+    <div className="min-h-screen bg-background overflow-x-hidden lg:pb-0 pb-[env(safe-area-inset-bottom)]">
       <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
         <DialogContent className="max-w-2xl w-[calc(100%-2rem)] max-h-[90vh] p-0 gap-0 overflow-hidden border-0 shadow-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:bg-black/40 [&>button]:text-white [&>button]:hover:bg-black/60 [&>button]:rounded-full [&>button]:z-10">
           <img
@@ -237,43 +334,184 @@ const Redinha = () => {
         </DialogContent>
       </Dialog>
 
+      <Tabs value={mobileTab} onValueChange={(v) => setMobileTab(v as "modulos" | "aula")}>
       <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg pt-[env(safe-area-inset-top)]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-h-0">
-          <div className="flex items-center min-w-0 flex-1">
-            <div className="min-w-0">
-              <h1 className="font-display font-bold text-base sm:text-lg md:text-xl leading-tight truncate">
-                Curso Redinha
-              </h1>
-              <p className="text-white/70 text-xs font-body hidden md:block">
-                Área de Conteúdo
-              </p>
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
+          {/* Mobile: tabs + progress */}
+          <div className="flex flex-col gap-3 lg:hidden">
+            <h1 className="font-display font-bold text-base leading-tight truncate">
+              Curso Redinha
+            </h1>
+            <div className="flex items-center gap-3">
+              <TabsList className="flex-1 grid grid-cols-2 h-11 bg-white/20 p-1 rounded-lg">
+                <TabsTrigger value="modulos" className="data-[state=active]:bg-white data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-md">
+                  Módulos
+                </TabsTrigger>
+                <TabsTrigger value="aula" className="data-[state=active]:bg-white data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-md">
+                  Aula
+                </TabsTrigger>
+              </TabsList>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <div className="w-14 h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white/90 rounded-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="text-xs font-semibold tabular-nums w-8">{progress}%</span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-            <div className="hidden sm:flex items-center gap-4 text-xs font-body text-white/70">
-              <span className="flex items-center gap-1">
-                <Video className="w-3.5 h-3.5 shrink-0" /> {totalVideos} vídeos
-              </span>
-              {totalPdfs > 0 && (
-                <span className="flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5 shrink-0" /> {totalPdfs} PDFs
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div className="w-16 sm:w-24 h-2 bg-white/20 rounded-full overflow-hidden shrink-0">
-                <div
-                  className="h-full bg-white/90 rounded-full transition-all duration-500"
-                  style={{ width: `${progress}%` }}
-                />
+          {/* Desktop: original header */}
+          <div className="hidden lg:flex items-center justify-between gap-2 min-h-0">
+            <div className="flex items-center min-w-0 flex-1">
+              <div className="min-w-0">
+                <h1 className="font-display font-bold text-lg md:text-xl leading-tight truncate">
+                  Curso Redinha
+                </h1>
+                <p className="text-white/70 text-xs font-body">
+                  Área de Conteúdo
+                </p>
               </div>
-              <span className="text-xs font-body font-semibold shrink-0 tabular-nums">{progress}%</span>
+            </div>
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="flex items-center gap-4 text-xs font-body text-white/70">
+                <span className="flex items-center gap-1">
+                  <Video className="w-3.5 h-3.5 shrink-0" /> {totalVideos} vídeos
+                </span>
+                {totalPdfs > 0 && (
+                  <span className="flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5 shrink-0" /> {totalPdfs} PDFs
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-white/90 rounded-full transition-all duration-500"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <span className="text-xs font-body font-semibold tabular-nums">{progress}%</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 sm:gap-6">
+      {/* Mobile: tab content */}
+      <div className="lg:hidden">
+          <TabsContent value="modulos" className="mt-0 px-3 py-4 overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-accent" />
+                Módulos
+              </h2>
+              <span className="text-xs font-body text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
+                {completedCount} de {totalLessons}
+              </span>
+            </div>
+            <MobileModuleList
+              openModules={openModules}
+              toggleModule={toggleModule}
+              completed={completed}
+              toggleCompleted={toggleCompleted}
+              activeLesson={activeLesson}
+              selectLesson={selectLessonAndSwitchToAula}
+            />
+          </TabsContent>
+          <TabsContent value="aula" className="mt-0">
+            <div className="px-3 py-4 space-y-4">
+              <div className="bg-card rounded-xl border border-border shadow-md overflow-hidden">
+                {activeLesson.type === "video" ? (
+                  activeLesson.videoUrl ? (
+                    <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
+                      <iframe
+                        src={activeLesson.videoUrl}
+                        title={activeLesson.title}
+                        className="absolute inset-0 w-full h-full border-0"
+                        loading="lazy"
+                        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-video bg-gradient-to-br from-rose-900 to-amber-900 flex flex-col items-center justify-center text-white gap-4">
+                      <Play className="w-10 h-10 ml-1" />
+                      <p className="font-body text-sm text-white/70">Vídeo será disponibilizado em breve</p>
+                    </div>
+                  )
+                ) : (
+                  <div className="aspect-video bg-gradient-to-br from-amber-50 to-rose-50 flex flex-col items-center justify-center gap-4 p-8">
+                    <FileText className="w-10 h-10 text-secondary" />
+                    <p className="font-display font-bold text-xl text-foreground text-center">{activeLesson.title}</p>
+                    {activeLesson.pdfUrl ? (
+                      <a href={activeLesson.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-semibold text-sm px-6 py-3 rounded-xl">
+                        Baixar PDF
+                      </a>
+                    ) : (
+                      <p className="font-body text-sm text-muted-foreground">PDF será disponibilizado em breve</p>
+                    )}
+                  </div>
+                )}
+                <div className="px-4 py-4 space-y-3">
+                  <div className="flex flex-col gap-3">
+                    <div>
+                      <p className="text-xs font-body text-accent font-semibold mb-1">{activeModule.icon} {activeModule.title}</p>
+                      <h2 className="font-display font-bold text-lg text-foreground">{activeLesson.title}</h2>
+                      {activeLesson.description && <p className="text-sm text-muted-foreground mt-1 font-body">{activeLesson.description}</p>}
+                    </div>
+                    <button
+                      onClick={isCurrentDone ? () => toggleCompleted(activeLesson.id) : markAndAdvance}
+                      className={`min-h-[48px] flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-sm font-body font-semibold transition-all touch-manipulation ${
+                        isCurrentDone ? "bg-accent/10 text-accent" : "bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md"
+                      }`}
+                    >
+                      {isCurrentDone ? <CheckCircle2 className="w-4 h-4" /> : <Trophy className="w-4 h-4" />}
+                      {isCurrentDone ? "Concluída" : "Concluir Aula"}
+                    </button>
+                  </div>
+                  {activeLesson.duration && (
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-body">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>Duração: {activeLesson.duration}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div ref={navRef} className="flex gap-3">
+                <button
+                  onClick={() => prevEntry && selectLesson(prevEntry.module, prevEntry.lesson)}
+                  disabled={!prevEntry}
+                  className="flex-1 flex items-center gap-2 bg-card border border-border rounded-xl px-4 min-h-[48px] text-left touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-5 h-5 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] text-muted-foreground uppercase">Anterior</p>
+                    <p className="font-body font-semibold text-xs text-foreground truncate">{prevEntry?.lesson.title ?? "—"}</p>
+                  </div>
+                </button>
+                <button
+                  onClick={() => nextEntry && selectLesson(nextEntry.module, nextEntry.lesson)}
+                  disabled={!nextEntry}
+                  className={`flex-1 flex items-center gap-2 rounded-xl px-4 min-h-[48px] text-right touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed ${
+                    isCurrentDone && nextEntry ? "bg-gradient-to-r from-rose-600 to-amber-600 text-white" : "bg-card border border-border"
+                  }`}
+                >
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[10px] uppercase">Próxima</p>
+                    <p className={`font-body font-semibold text-xs truncate ${isCurrentDone && nextEntry ? "text-white" : "text-foreground"}`}>{nextEntry?.lesson.title ?? "—"}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 shrink-0" />
+                </button>
+              </div>
+            </div>
+          </TabsContent>
+      </div>
+      </Tabs>
+
+      {/* Desktop: original layout */}
+      <div className="hidden lg:block max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
         <aside className="hidden lg:block lg:w-80 shrink-0">
           <div className="lg:sticky lg:top-20 space-y-4">
             <div className="flex items-center justify-between">
@@ -285,7 +523,7 @@ const Redinha = () => {
                 {completedCount}/{totalLessons} aulas
               </span>
             </div>
-            <ModuleList
+            <DesktopModuleList
               openModules={openModules}
               toggleModule={toggleModule}
               completed={completed}
@@ -424,36 +662,6 @@ const Redinha = () => {
         </main>
       </div>
 
-      <div className="lg:hidden fixed bottom-4 left-4 z-40 pb-[env(safe-area-inset-bottom)]">
-        <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
-          <SheetTrigger asChild>
-            <button className="w-14 h-14 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform touch-manipulation" aria-label="Abrir menu de módulos">
-              <List className="w-6 h-6" />
-            </button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[min(85vw,20rem)] max-w-sm p-0 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
-            <SheetHeader className="px-5 pt-5 pb-3">
-              <SheetTitle className="font-display font-bold text-lg flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-accent" />
-                Módulos
-                <span className="ml-auto text-xs font-body font-normal text-muted-foreground">
-                  {completedCount}/{totalLessons}
-                </span>
-              </SheetTitle>
-            </SheetHeader>
-            <div className="px-4 pb-6">
-              <ModuleList
-                openModules={openModules}
-                toggleModule={toggleModule}
-                completed={completed}
-                toggleCompleted={toggleCompleted}
-                activeLesson={activeLesson}
-                selectLesson={selectLesson}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
-      </div>
     </div>
   );
 };
