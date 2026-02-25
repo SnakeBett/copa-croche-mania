@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { Link } from "react-router-dom";
 import {
   Play,
   FileText,
@@ -9,7 +8,6 @@ import {
   Clock,
   BookOpen,
   Video,
-  Home,
   CheckCircle2,
   List,
   Trophy,
@@ -228,26 +226,22 @@ const Redinha = () => {
   const totalPdfs = totalPdfsRedinha;
 
   return (
-    <div className="min-h-screen bg-background pb-20 lg:pb-0">
+    <div className="min-h-screen bg-background pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0 overflow-x-hidden">
       <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
-        <DialogContent className="max-w-2xl p-0 gap-0 overflow-hidden border-0 shadow-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:bg-black/40 [&>button]:text-white [&>button]:hover:bg-black/60 [&>button]:rounded-full">
+        <DialogContent className="max-w-2xl w-[calc(100%-2rem)] max-h-[90vh] p-0 gap-0 overflow-hidden border-0 shadow-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:bg-black/40 [&>button]:text-white [&>button]:hover:bg-black/60 [&>button]:rounded-full [&>button]:z-10">
           <img
             src="/images/boasvindas.jpeg"
             alt="Bem-vinda à comunidade Redinhas Pet!"
-            className="w-full h-auto rounded-lg"
+            className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
           />
         </DialogContent>
       </Dialog>
 
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/" className="hover:opacity-80 transition-opacity" aria-label="Voltar ao início">
-              <Home className="w-5 h-5" />
-            </Link>
-            <div className="w-px h-6 bg-white/30" />
-            <div>
-              <h1 className="font-display font-bold text-lg md:text-xl leading-tight">
+      <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg pt-[env(safe-area-inset-top)]">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3 flex items-center justify-between gap-2 min-h-0">
+          <div className="flex items-center min-w-0 flex-1">
+            <div className="min-w-0">
+              <h1 className="font-display font-bold text-base sm:text-lg md:text-xl leading-tight truncate">
                 Curso Redinha
               </h1>
               <p className="text-white/70 text-xs font-body hidden md:block">
@@ -255,31 +249,31 @@ const Redinha = () => {
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="hidden md:flex items-center gap-4 text-xs font-body text-white/70">
+          <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="hidden sm:flex items-center gap-4 text-xs font-body text-white/70">
               <span className="flex items-center gap-1">
-                <Video className="w-3.5 h-3.5" /> {totalVideos} vídeos
+                <Video className="w-3.5 h-3.5 shrink-0" /> {totalVideos} vídeos
               </span>
               {totalPdfs > 0 && (
                 <span className="flex items-center gap-1">
-                  <FileText className="w-3.5 h-3.5" /> {totalPdfs} PDFs
+                  <FileText className="w-3.5 h-3.5 shrink-0" /> {totalPdfs} PDFs
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="w-16 sm:w-24 h-2 bg-white/20 rounded-full overflow-hidden shrink-0">
                 <div
-                  className="h-full bg-secondary rounded-full transition-all duration-500"
+                  className="h-full bg-white/90 rounded-full transition-all duration-500"
                   style={{ width: `${progress}%` }}
                 />
               </div>
-              <span className="text-xs font-body font-semibold">{progress}%</span>
+              <span className="text-xs font-body font-semibold shrink-0 tabular-nums">{progress}%</span>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 flex flex-col lg:flex-row gap-4 sm:gap-6">
         <aside className="hidden lg:block lg:w-80 shrink-0">
           <div className="lg:sticky lg:top-20 space-y-4">
             <div className="flex items-center justify-between">
@@ -304,7 +298,7 @@ const Redinha = () => {
 
         <main className="flex-1 min-w-0">
           <div className="space-y-6">
-            <div className="bg-card rounded-2xl border border-border shadow-md overflow-hidden">
+            <div className="bg-card rounded-xl sm:rounded-2xl border border-border shadow-md overflow-hidden">
               {activeLesson.type === "video" ? (
                 <div className="relative">
                   {activeLesson.videoUrl ? (
@@ -354,8 +348,8 @@ const Redinha = () => {
                 </div>
               )}
 
-              <div className="px-5 md:px-6 py-5 space-y-3">
-                <div className="flex items-start justify-between gap-4">
+              <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
                   <div>
                     <p className="text-xs font-body text-accent font-semibold mb-1">
                       {activeModule.icon} {activeModule.title}
@@ -391,7 +385,7 @@ const Redinha = () => {
               </div>
             </div>
 
-            <div ref={navRef} className="flex gap-3">
+            <div ref={navRef} className="flex gap-2 sm:gap-3">
               <button
                 onClick={() => prevEntry && selectLesson(prevEntry.module, prevEntry.lesson)}
                 disabled={!prevEntry}
@@ -430,14 +424,14 @@ const Redinha = () => {
         </main>
       </div>
 
-      <div className="lg:hidden fixed bottom-4 left-4 z-40">
+      <div className="lg:hidden fixed bottom-4 left-4 z-40 pb-[env(safe-area-inset-bottom)]">
         <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
           <SheetTrigger asChild>
-            <button className="w-14 h-14 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform">
+            <button className="w-14 h-14 rounded-full bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform touch-manipulation" aria-label="Abrir menu de módulos">
               <List className="w-6 h-6" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-[85vw] max-w-sm p-0 overflow-y-auto">
+          <SheetContent side="left" className="w-[min(85vw,20rem)] max-w-sm p-0 overflow-y-auto pb-[env(safe-area-inset-bottom)]">
             <SheetHeader className="px-5 pt-5 pb-3">
               <SheetTitle className="font-display font-bold text-lg flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-accent" />
