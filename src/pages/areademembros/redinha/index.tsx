@@ -3,8 +3,8 @@ import {
   Play,
   FileText,
   ChevronDown,
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
   Clock,
   BookOpen,
   Video,
@@ -12,25 +12,18 @@ import {
   Trophy,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import {
   courseModulesRedinha,
   totalLessonsRedinha,
   totalVideosRedinha,
-  totalPdfsRedinha,
   type Lesson,
   type CourseModule,
 } from "@/data/course-content-redinha";
 
 const STORAGE_KEY = "redinha-croche-progress";
-const courseModules = courseModulesRedinha;
-
-const allLessons = courseModules.flatMap((mod) =>
-  mod.lessons.map((lesson) => ({ lesson, module: mod })),
-);
+const modules = courseModulesRedinha;
+const allLessons = modules.flatMap((m) => m.lessons.map((l) => ({ lesson: l, module: m })));
 
 function loadProgress(): Set<string> {
   try {
@@ -39,631 +32,435 @@ function loadProgress(): Set<string> {
   } catch {}
   return new Set();
 }
-
-function saveProgress(completed: Set<string>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...completed]));
+function saveProgress(s: Set<string>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...s]));
 }
 
-const ProgressRing = ({ percent, size = 40 }: { percent: number; size?: number }) => {
-  const r = (size - 6) / 2;
-  const circ = 2 * Math.PI * r;
-  const offset = circ - (percent / 100) * circ;
+const ProgressRing = ({ percent, size = 44 }: { percent: number; size?: number }) => {
+  const r = (size - 5) / 2;
+  const c = 2 * Math.PI * r;
   return (
     <svg width={size} height={size} className="shrink-0 -rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} className="text-border/40" />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} strokeDasharray={circ} strokeDashoffset={offset} strokeLinecap="round" className="text-accent transition-all duration-700" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} className="text-rose-200" />
+      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="currentColor" strokeWidth={3} strokeDasharray={c} strokeDashoffset={c - (percent / 100) * c} strokeLinecap="round" className="text-rose-500 transition-all duration-700" />
     </svg>
   );
 };
 
-const MobileModuleList = ({
-  openModules,
-  toggleModule,
+const LessonRow = ({
+  lesson,
+  isActive,
+  isDone,
+  onSelect,
+  onToggle,
+  variant,
+}: {
+  lesson: Lesson;
+  isActive: boolean;
+  isDone: boolean;
+  onSelect: () => void;
+  onToggle: () => void;
+  variant: "mobile" | "desktop";
+}) => {
+  const mob = variant === "mobile";
+  return (
+    <div
+      onClick={onSelect}
+      onKeyDown={(e) => e.key === "Enter" && onSelect()}
+      role="button"
+      tabIndex={0}
+      className={`group flex items-center gap-3 cursor-pointer transition-colors touch-manipulation ${
+        mob ? "px-4 min-h-[56px] py-3" : "px-3 py-2"
+      } ${isActive ? "bg-rose-50" : "hover:bg-gray-50 active:bg-gray-100"}`}
+    >
+      <button
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}
+        className="shrink-0 touch-manipulation"
+        aria-label={isDone ? "Desmarcar" : "Marcar como concluída"}
+      >
+        <CheckCircle2 className={`transition-colors ${mob ? "w-5 h-5" : "w-4 h-4"} ${isDone ? "text-rose-500 fill-rose-100" : "text-gray-300"}`} />
+      </button>
+      <div className={`shrink-0 rounded-lg flex items-center justify-center ${mob ? "w-9 h-9" : "w-7 h-7"} ${isActive ? "bg-rose-100" : "bg-gray-100"}`}>
+        {lesson.type === "video"
+          ? <Play className={`${mob ? "w-4 h-4" : "w-3.5 h-3.5"} ${isActive ? "text-rose-600" : "text-gray-400"}`} />
+          : <FileText className={`${mob ? "w-4 h-4" : "w-3.5 h-3.5"} ${isActive ? "text-rose-600" : "text-gray-400"}`} />}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className={`leading-snug truncate ${mob ? "text-sm" : "text-xs"} ${isActive ? "text-rose-700 font-semibold" : "text-gray-700"}`}>
+          {lesson.title}
+        </p>
+        {lesson.duration && <p className="text-[11px] text-gray-400 mt-0.5">{lesson.duration}</p>}
+      </div>
+      {isActive && <div className={`shrink-0 rounded-full bg-rose-500 ${mob ? "w-1.5 h-8" : "w-1 h-6"}`} />}
+    </div>
+  );
+};
+
+const ModuleCard = ({
+  mod,
+  isOpen,
+  onToggle,
   completed,
   toggleCompleted,
   activeLesson,
   selectLesson,
+  variant,
 }: {
-  openModules: string[];
-  toggleModule: (id: string) => void;
+  mod: CourseModule;
+  isOpen: boolean;
+  onToggle: () => void;
   completed: Set<string>;
   toggleCompleted: (id: string) => void;
   activeLesson: Lesson;
   selectLesson: (mod: CourseModule, lesson: Lesson) => void;
-}) => (
-  <div className="space-y-3">
-    {courseModules.map((mod) => {
-      const isOpen = openModules.includes(mod.id);
-      const modCompleted = mod.lessons.filter((l) => completed.has(l.id)).length;
-      const modProgress = mod.lessons.length > 0 ? (modCompleted / mod.lessons.length) * 100 : 0;
-      const isModDone = modCompleted === mod.lessons.length;
+  variant: "mobile" | "desktop";
+}) => {
+  const done = mod.lessons.filter((l) => completed.has(l.id)).length;
+  const pct = mod.lessons.length > 0 ? (done / mod.lessons.length) * 100 : 0;
+  const allDone = done === mod.lessons.length;
+  const mob = variant === "mobile";
 
-      return (
-        <div
-          key={mod.id}
-          className={`rounded-2xl border overflow-hidden shadow-sm transition-all ${
-            isModDone ? "border-accent/40 bg-accent/5" : "border-border bg-card"
-          }`}
-        >
-          <button
-            onClick={() => toggleModule(mod.id)}
-            className="w-full flex items-center gap-4 px-4 py-4 active:bg-muted/30 transition-colors text-left touch-manipulation"
-          >
-            <div className="relative shrink-0">
-              <ProgressRing percent={modProgress} size={48} />
-              <span className="absolute inset-0 flex items-center justify-center text-xl">
-                {isModDone ? "✅" : mod.icon}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-body font-bold text-foreground text-[15px] leading-snug">
-                {mod.title}
-              </p>
-              <p className="text-xs text-muted-foreground font-body mt-0.5 truncate">{mod.description}</p>
-              <p className="text-[11px] text-muted-foreground/70 font-body mt-1">
-                {modCompleted}/{mod.lessons.length} aulas concluídas
-              </p>
-            </div>
-            <ChevronDown className={`w-5 h-5 text-muted-foreground shrink-0 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
-          </button>
-
-          {isOpen && (
-            <div className="border-t border-border/60 bg-muted/20">
-              {mod.lessons.map((lesson, idx) => {
-                const isActive = activeLesson.id === lesson.id;
-                const isDone = completed.has(lesson.id);
-                return (
-                  <div
-                    key={lesson.id}
-                    className={`flex items-center gap-3 px-4 min-h-[56px] py-3 transition-colors font-body cursor-pointer touch-manipulation ${
-                      idx < mod.lessons.length - 1 ? "border-b border-border/30" : ""
-                    } ${
-                      isActive
-                        ? "bg-accent/10"
-                        : "active:bg-muted/40"
-                    }`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => selectLesson(mod, lesson)}
-                    onKeyDown={(e) => { if (e.key === "Enter") selectLesson(mod, lesson); }}
-                  >
-                    <span
-                      role="checkbox"
-                      aria-checked={isDone}
-                      tabIndex={0}
-                      className="shrink-0 touch-manipulation"
-                      onClick={(e) => { e.stopPropagation(); toggleCompleted(lesson.id); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleCompleted(lesson.id); } }}
-                    >
-                      <CheckCircle2
-                        className={`w-5 h-5 transition-colors ${
-                          isDone ? "text-accent fill-accent/20" : "text-border"
-                        }`}
-                      />
-                    </span>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                      isActive ? "bg-accent/20" : "bg-muted/60"
-                    }`}>
-                      {lesson.type === "video" ? (
-                        <Play className={`w-4 h-4 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
-                      ) : (
-                        <FileText className={`w-4 h-4 ${isActive ? "text-accent" : "text-muted-foreground"}`} />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <span className={`block text-sm leading-snug ${isActive ? "text-accent font-semibold" : "text-foreground"}`}>
-                        {lesson.title}
-                      </span>
-                      {lesson.duration && (
-                        <span className="text-[11px] text-muted-foreground">{lesson.duration}</span>
-                      )}
-                    </div>
-                    {isActive && <div className="w-1.5 h-8 bg-accent rounded-full shrink-0" />}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+  return (
+    <div className={`bg-white border overflow-hidden transition-all ${mob ? "rounded-2xl shadow-sm" : "rounded-xl"} ${allDone ? "border-rose-200" : "border-gray-200"}`}>
+      <button
+        onClick={onToggle}
+        className={`w-full flex items-center text-left touch-manipulation transition-colors hover:bg-gray-50 active:bg-gray-100 ${mob ? "gap-4 px-4 py-4" : "gap-3 px-3 py-3"}`}
+      >
+        <div className="relative shrink-0">
+          <ProgressRing percent={pct} size={mob ? 48 : 40} />
+          <span className={`absolute inset-0 flex items-center justify-center ${mob ? "text-xl" : "text-lg"}`}>
+            {allDone ? "✅" : mod.icon}
+          </span>
         </div>
-      );
-    })}
-  </div>
-);
+        <div className="flex-1 min-w-0">
+          <p className={`font-semibold text-gray-800 leading-snug truncate ${mob ? "text-[15px]" : "text-sm"}`}>{mod.title}</p>
+          {mob && <p className="text-xs text-gray-400 mt-0.5 truncate">{mod.description}</p>}
+          <p className={`text-gray-400 mt-0.5 ${mob ? "text-[11px]" : "text-[10px]"}`}>{done}/{mod.lessons.length} concluídas</p>
+        </div>
+        <ChevronDown className={`w-5 h-5 text-gray-400 shrink-0 transition-transform duration-200 ${isOpen ? "" : "-rotate-90"}`} />
+      </button>
+      {isOpen && (
+        <div className={`border-t divide-y ${mob ? "divide-gray-100 border-gray-100" : "divide-gray-50 border-gray-100"}`}>
+          {mod.lessons.map((lesson) => (
+            <LessonRow
+              key={lesson.id}
+              lesson={lesson}
+              isActive={activeLesson.id === lesson.id}
+              isDone={completed.has(lesson.id)}
+              onSelect={() => selectLesson(mod, lesson)}
+              onToggle={() => toggleCompleted(lesson.id)}
+              variant={variant}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
-const DesktopModuleList = ({
-  openModules,
-  toggleModule,
-  completed,
-  toggleCompleted,
-  activeLesson,
-  selectLesson,
+const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
+  if (lesson.type !== "video") {
+    return (
+      <div className="aspect-video bg-gradient-to-br from-amber-50 to-rose-50 flex flex-col items-center justify-center gap-3 p-6">
+        <FileText className="w-10 h-10 text-rose-300" />
+        <p className="font-semibold text-lg text-gray-700 text-center">{lesson.title}</p>
+        {lesson.pdfUrl ? (
+          <a href={lesson.pdfUrl} target="_blank" rel="noopener noreferrer" className="bg-gradient-to-r from-rose-500 to-amber-500 text-white font-semibold text-sm px-6 py-3 rounded-xl">
+            Baixar PDF
+          </a>
+        ) : (
+          <p className="text-sm text-gray-400">PDF será disponibilizado em breve</p>
+        )}
+      </div>
+    );
+  }
+  if (!lesson.videoUrl) {
+    return (
+      <div className="aspect-video bg-gradient-to-br from-rose-900 to-amber-900 flex flex-col items-center justify-center text-white gap-3">
+        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center">
+          <Play className="w-8 h-8 ml-0.5" />
+        </div>
+        <p className="text-sm text-white/70">Vídeo será disponibilizado em breve</p>
+      </div>
+    );
+  }
+  return (
+    <div className="relative w-full bg-black" style={{ paddingTop: "56.25%" }}>
+      <iframe
+        key={lesson.id}
+        src={lesson.videoUrl}
+        title={lesson.title}
+        className="absolute inset-0 w-full h-full border-0"
+        loading="lazy"
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+        allowFullScreen
+      />
+    </div>
+  );
+};
+
+const LessonInfo = ({
+  lesson,
+  mod,
+  isDone,
+  onConclude,
+  onUnconclude,
+  mobile = false,
 }: {
-  openModules: string[];
-  toggleModule: (id: string) => void;
-  completed: Set<string>;
-  toggleCompleted: (id: string) => void;
-  activeLesson: Lesson;
-  selectLesson: (mod: CourseModule, lesson: Lesson) => void;
+  lesson: Lesson;
+  mod: CourseModule;
+  isDone: boolean;
+  onConclude: () => void;
+  onUnconclude: () => void;
+  mobile?: boolean;
 }) => (
-  <div className="space-y-2">
-    {courseModules.map((mod) => {
-      const isOpen = openModules.includes(mod.id);
-      const modCompleted = mod.lessons.filter((l) => completed.has(l.id)).length;
-      const modProgress = mod.lessons.length > 0 ? (modCompleted / mod.lessons.length) * 100 : 0;
-      const isModDone = modCompleted === mod.lessons.length;
-
-      return (
-        <div
-          key={mod.id}
-          className={`bg-card rounded-xl border overflow-hidden shadow-sm transition-colors ${
-            isModDone ? "border-accent/40" : "border-border"
-          }`}
-        >
-          <button
-            onClick={() => toggleModule(mod.id)}
-            className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-muted/50 transition-colors text-left"
-          >
-            <span className="text-2xl shrink-0">{isModDone ? "✅" : mod.icon}</span>
-            <div className="flex-1 min-w-0">
-              <p className="font-body font-semibold text-foreground text-sm truncate">{mod.title}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex-1 h-1.5 bg-border/50 rounded-full overflow-hidden">
-                  <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${modProgress}%` }} />
-                </div>
-                <span className="text-[10px] text-muted-foreground font-body shrink-0">{modCompleted}/{mod.lessons.length}</span>
-              </div>
-            </div>
-            {isOpen ? <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" /> : <ChevronRight className="w-4 h-4 text-muted-foreground shrink-0" />}
-          </button>
-          {isOpen && (
-            <div className="border-t border-border">
-              {mod.lessons.map((lesson) => {
-                const isActive = activeLesson.id === lesson.id;
-                const isDone = completed.has(lesson.id);
-                return (
-                  <div
-                    key={lesson.id}
-                    className={`flex items-center gap-2 px-4 py-2.5 transition-colors text-sm font-body cursor-pointer ${
-                      isActive ? "bg-accent/10 text-accent font-semibold" : "hover:bg-muted/30 text-foreground"
-                    }`}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => selectLesson(mod, lesson)}
-                    onKeyDown={(e) => { if (e.key === "Enter") selectLesson(mod, lesson); }}
-                  >
-                    <span
-                      role="checkbox"
-                      aria-checked={isDone}
-                      tabIndex={0}
-                      className="shrink-0 cursor-pointer"
-                      onClick={(e) => { e.stopPropagation(); toggleCompleted(lesson.id); }}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); toggleCompleted(lesson.id); } }}
-                    >
-                      <CheckCircle2 className={`w-4 h-4 transition-colors ${isDone ? "text-accent fill-accent/20" : "text-border"}`} />
-                    </span>
-                    {lesson.type === "video" ? <Play className="w-3.5 h-3.5 shrink-0 text-muted-foreground" /> : <FileText className="w-3.5 h-3.5 shrink-0 text-secondary" />}
-                    <span className="flex-1 truncate text-xs">{lesson.title}</span>
-                    {lesson.duration && <span className="text-[10px] text-muted-foreground shrink-0">{lesson.duration}</span>}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      );
-    })}
+  <div className={`space-y-3 ${mobile ? "px-4 py-4" : "px-5 py-5"}`}>
+    <div className={mobile ? "space-y-3" : "flex items-start justify-between gap-4"}>
+      <div className="min-w-0">
+        <p className="text-xs font-semibold text-rose-500 mb-1">{mod.icon} {mod.title}</p>
+        <h2 className={`font-bold text-gray-800 leading-snug ${mobile ? "text-lg" : "text-xl"}`}>{lesson.title}</h2>
+        {lesson.description && <p className="text-sm text-gray-400 mt-1">{lesson.description}</p>}
+      </div>
+      <button
+        onClick={isDone ? onUnconclude : onConclude}
+        className={`flex items-center justify-center gap-2 font-semibold text-sm rounded-xl transition-all touch-manipulation ${
+          mobile ? "w-full min-h-[48px] py-3" : "shrink-0 px-4 py-2.5"
+        } ${isDone ? "bg-rose-50 text-rose-500" : "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md hover:shadow-lg"}`}
+      >
+        {isDone ? <CheckCircle2 className="w-4 h-4" /> : <Trophy className="w-4 h-4" />}
+        {isDone ? "Concluída" : "Concluir Aula"}
+      </button>
+    </div>
+    {lesson.duration && (
+      <div className="flex items-center gap-1.5 text-xs text-gray-400">
+        <Clock className="w-3.5 h-3.5" />
+        Duração: {lesson.duration}
+      </div>
+    )}
   </div>
 );
 
-const Redinha = () => {
-  const [openModules, setOpenModules] = useState<string[]>([courseModules[0].id]);
-  const [activeLesson, setActiveLesson] = useState<Lesson>(courseModules[0].lessons[0]);
-  const [activeModule, setActiveModule] = useState<CourseModule>(courseModules[0]);
+const NavButtons = ({
+  prev,
+  next,
+  isDone,
+  onPrev,
+  onNext,
+}: {
+  prev: string | null;
+  next: string | null;
+  isDone: boolean;
+  onPrev: () => void;
+  onNext: () => void;
+}) => (
+  <div className="flex gap-3">
+    <button
+      onClick={onPrev}
+      disabled={!prev}
+      className="flex-1 flex items-center gap-2 bg-white border border-gray-200 rounded-xl px-4 min-h-[48px] text-left transition-all touch-manipulation disabled:opacity-40"
+    >
+      <ChevronLeft className="w-5 h-5 text-gray-400 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] text-gray-400 uppercase tracking-wide">Anterior</p>
+        <p className="font-semibold text-xs text-gray-700 truncate">{prev ?? "---"}</p>
+      </div>
+    </button>
+    <button
+      onClick={onNext}
+      disabled={!next}
+      className={`flex-1 flex items-center gap-2 rounded-xl px-4 min-h-[48px] text-right transition-all touch-manipulation disabled:opacity-40 ${
+        isDone && next ? "bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-md" : "bg-white border border-gray-200"
+      }`}
+    >
+      <div className="flex-1 min-w-0">
+        <p className={`text-[10px] uppercase tracking-wide ${isDone && next ? "text-white/70" : "text-gray-400"}`}>Próxima</p>
+        <p className={`font-semibold text-xs truncate ${isDone && next ? "text-white" : "text-gray-700"}`}>{next ?? "---"}</p>
+      </div>
+      <ChevronRight className={`w-5 h-5 shrink-0 ${isDone && next ? "text-white/70" : "text-gray-400"}`} />
+    </button>
+  </div>
+);
+
+const ProgressBar = ({ percent, className = "" }: { percent: number; className?: string }) => (
+  <div className={`flex items-center gap-2 ${className}`}>
+    <div className="flex-1 h-2 bg-white/20 rounded-full overflow-hidden">
+      <div className="h-full bg-white/90 rounded-full transition-all duration-500" style={{ width: `${percent}%` }} />
+    </div>
+    <span className="text-xs font-semibold tabular-nums">{percent}%</span>
+  </div>
+);
+
+export default function Redinha() {
+  const [openMods, setOpenMods] = useState<string[]>([modules[0].id]);
+  const [active, setActive] = useState<Lesson>(modules[0].lessons[0]);
+  const [activeMod, setActiveMod] = useState<CourseModule>(modules[0]);
   const [completed, setCompleted] = useState<Set<string>>(loadProgress);
-  const [mobileTab, setMobileTab] = useState<"modulos" | "aula">("modulos");
+  const [mobileTab, setMobileTab] = useState<string>("modulos");
   const [welcomeOpen, setWelcomeOpen] = useState(true);
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { saveProgress(completed); }, [completed]);
 
-  const toggleModule = useCallback((id: string) => {
-    setOpenModules((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
-    );
+  const toggle = useCallback((id: string) => {
+    setOpenMods((p) => p.includes(id) ? p.filter((x) => x !== id) : [...p, id]);
   }, []);
 
-  const selectLesson = useCallback((mod: CourseModule, lesson: Lesson) => {
-    setActiveLesson(lesson);
-    setActiveModule(mod);
-    setOpenModules((prev) => prev.includes(mod.id) ? prev : [...prev, mod.id]);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  const pick = useCallback((mod: CourseModule, lesson: Lesson) => {
+    setActive(lesson);
+    setActiveMod(mod);
+    setOpenMods((p) => p.includes(mod.id) ? p : [...p, mod.id]);
   }, []);
 
-  const selectLessonAndSwitchToAula = useCallback((mod: CourseModule, lesson: Lesson) => {
-    selectLesson(mod, lesson);
+  const pickAndSwitch = useCallback((mod: CourseModule, lesson: Lesson) => {
+    pick(mod, lesson);
     setMobileTab("aula");
-  }, [selectLesson]);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [pick]);
 
-  const toggleCompleted = useCallback((lessonId: string) => {
-    setCompleted((prev) => {
-      const next = new Set(prev);
-      if (next.has(lessonId)) next.delete(lessonId);
-      else next.add(lessonId);
-      return next;
-    });
+  const toggleDone = useCallback((id: string) => {
+    setCompleted((p) => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
   }, []);
 
-  const currentIndex = useMemo(
-    () => allLessons.findIndex((l) => l.lesson.id === activeLesson.id),
-    [activeLesson.id],
+  const idx = useMemo(() => allLessons.findIndex((l) => l.lesson.id === active.id), [active.id]);
+  const prev = idx > 0 ? allLessons[idx - 1] : null;
+  const next = idx < allLessons.length - 1 ? allLessons[idx + 1] : null;
+
+  const conclude = useCallback(() => {
+    setCompleted((p) => { const n = new Set(p); n.add(active.id); return n; });
+    if (next) setTimeout(() => navRef.current?.scrollIntoView({ behavior: "smooth", block: "center" }), 200);
+  }, [active.id, next]);
+
+  const doneCount = completed.size;
+  const pct = totalLessonsRedinha > 0 ? Math.round((doneCount / totalLessonsRedinha) * 100) : 0;
+  const isDone = completed.has(active.id);
+
+  const moduleList = (variant: "mobile" | "desktop") => (
+    <div className={variant === "mobile" ? "space-y-3" : "space-y-2"}>
+      {modules.map((mod) => (
+        <ModuleCard
+          key={mod.id}
+          mod={mod}
+          isOpen={openMods.includes(mod.id)}
+          onToggle={() => toggle(mod.id)}
+          completed={completed}
+          toggleCompleted={toggleDone}
+          activeLesson={active}
+          selectLesson={variant === "mobile" ? pickAndSwitch : pick}
+          variant={variant}
+        />
+      ))}
+    </div>
   );
 
-  const prevEntry = currentIndex > 0 ? allLessons[currentIndex - 1] : null;
-  const nextEntry = currentIndex < allLessons.length - 1 ? allLessons[currentIndex + 1] : null;
-
-  const markAndAdvance = useCallback(() => {
-    setCompleted((prev) => {
-      const next = new Set(prev);
-      next.add(activeLesson.id);
-      return next;
-    });
-    if (nextEntry) {
-      setTimeout(() => {
-        navRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      }, 200);
-    }
-  }, [activeLesson.id, nextEntry]);
-
-  const completedCount = completed.size;
-  const progress = totalLessonsRedinha > 0 ? Math.round((completedCount / totalLessonsRedinha) * 100) : 0;
-  const isCurrentDone = completed.has(activeLesson.id);
-
-  const totalLessons = totalLessonsRedinha;
-  const totalVideos = totalVideosRedinha;
-  const totalPdfs = totalPdfsRedinha;
+  const lessonContent = (mobile: boolean) => (
+    <div className="space-y-4">
+      <div className={`bg-white overflow-hidden shadow-sm ${mobile ? "rounded-xl border border-gray-200" : "rounded-2xl border border-gray-200"}`}>
+        <VideoPlayer lesson={active} />
+        <LessonInfo
+          lesson={active}
+          mod={activeMod}
+          isDone={isDone}
+          onConclude={conclude}
+          onUnconclude={() => toggleDone(active.id)}
+          mobile={mobile}
+        />
+      </div>
+      <div ref={navRef}>
+        <NavButtons
+          prev={prev?.lesson.title ?? null}
+          next={next?.lesson.title ?? null}
+          isDone={isDone}
+          onPrev={() => prev && (mobile ? pickAndSwitch : pick)(prev.module, prev.lesson)}
+          onNext={() => next && (mobile ? pickAndSwitch : pick)(next.module, next.lesson)}
+        />
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen bg-background overflow-x-hidden lg:pb-0 pb-[env(safe-area-inset-bottom)]">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
+      {/* Welcome popup */}
       <Dialog open={welcomeOpen} onOpenChange={setWelcomeOpen}>
         <DialogContent className="max-w-2xl w-[calc(100%-2rem)] max-h-[90vh] p-0 gap-0 overflow-hidden border-0 shadow-2xl [&>button]:right-2 [&>button]:top-2 [&>button]:bg-black/40 [&>button]:text-white [&>button]:hover:bg-black/60 [&>button]:rounded-full [&>button]:z-10">
-          <img
-            src="/images/boasvindas.jpeg"
-            alt="Bem-vinda à comunidade Redinhas Pet!"
-            className="w-full h-auto max-h-[85vh] object-contain rounded-lg"
-          />
+          <img src="/images/boasvindas.jpeg" alt="Bem-vinda!" className="w-full h-auto max-h-[85vh] object-contain" />
         </DialogContent>
       </Dialog>
 
-      <Tabs value={mobileTab} onValueChange={(v) => setMobileTab(v as "modulos" | "aula")}>
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg pt-[env(safe-area-inset-top)]">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 sm:py-3">
-          {/* Mobile: tabs + progress */}
-          <div className="flex flex-col gap-3 lg:hidden">
-            <h1 className="font-display font-bold text-base leading-tight truncate">
-              Curso Redinha
-            </h1>
-            <div className="flex items-center gap-3">
-              <TabsList className="flex-1 grid grid-cols-2 h-11 bg-white/20 p-1 rounded-lg">
-                <TabsTrigger value="modulos" className="data-[state=active]:bg-white data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-md">
+      {/* ===== MOBILE (< lg) ===== */}
+      <div className="lg:hidden flex flex-col min-h-screen">
+        <Tabs value={mobileTab} onValueChange={setMobileTab}>
+          <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-lg pt-[env(safe-area-inset-top)]">
+            <div className="px-4 pt-3 pb-3 space-y-3">
+              <div className="flex items-center justify-between">
+                <h1 className="font-bold text-base leading-tight">Curso Redinha</h1>
+                <ProgressBar percent={pct} className="w-28" />
+              </div>
+              <TabsList className="w-full grid grid-cols-2 h-11 bg-white/15 backdrop-blur-sm p-1 rounded-xl">
+                <TabsTrigger value="modulos" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm text-white/80">
                   Módulos
                 </TabsTrigger>
-                <TabsTrigger value="aula" className="data-[state=active]:bg-white data-[state=active]:text-rose-700 data-[state=active]:shadow-sm rounded-md">
+                <TabsTrigger value="aula" className="rounded-lg text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-rose-600 data-[state=active]:shadow-sm text-white/80">
                   Aula
                 </TabsTrigger>
               </TabsList>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <div className="w-14 h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white/90 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <span className="text-xs font-semibold tabular-nums w-8">{progress}%</span>
-              </div>
             </div>
-          </div>
-          {/* Desktop: original header */}
-          <div className="hidden lg:flex items-center justify-between gap-2 min-h-0">
-            <div className="flex items-center min-w-0 flex-1">
-              <div className="min-w-0">
-                <h1 className="font-display font-bold text-lg md:text-xl leading-tight truncate">
-                  Curso Redinha
-                </h1>
-                <p className="text-white/70 text-xs font-body">
-                  Área de Conteúdo
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 shrink-0">
-              <div className="flex items-center gap-4 text-xs font-body text-white/70">
-                <span className="flex items-center gap-1">
-                  <Video className="w-3.5 h-3.5 shrink-0" /> {totalVideos} vídeos
-                </span>
-                {totalPdfs > 0 && (
-                  <span className="flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5 shrink-0" /> {totalPdfs} PDFs
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-white/90 rounded-full transition-all duration-500"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <span className="text-xs font-body font-semibold tabular-nums">{progress}%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+          </header>
 
-      {/* Mobile: tab content */}
-      <div className="lg:hidden">
-          <TabsContent value="modulos" className="mt-0 px-3 py-4 overflow-y-auto">
+          <TabsContent value="modulos" className="flex-1 mt-0 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
             <div className="flex items-center justify-between mb-3">
-              <h2 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-accent" />
+              <h2 className="font-bold text-lg text-gray-800 flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-rose-500" />
                 Módulos
               </h2>
-              <span className="text-xs font-body text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-full">
-                {completedCount} de {totalLessons}
-              </span>
+              <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full font-medium">{doneCount} de {totalLessonsRedinha}</span>
             </div>
-            <MobileModuleList
-              openModules={openModules}
-              toggleModule={toggleModule}
-              completed={completed}
-              toggleCompleted={toggleCompleted}
-              activeLesson={activeLesson}
-              selectLesson={selectLessonAndSwitchToAula}
-            />
+            {moduleList("mobile")}
           </TabsContent>
-          <TabsContent value="aula" className="mt-0">
-            <div className="px-3 py-4 space-y-4">
-              <div className="bg-card rounded-xl border border-border shadow-md overflow-hidden">
-                {activeLesson.type === "video" ? (
-                  activeLesson.videoUrl ? (
-                    <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-                      <iframe
-                        src={activeLesson.videoUrl}
-                        title={activeLesson.title}
-                        className="absolute inset-0 w-full h-full border-0"
-                        loading="lazy"
-                        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-video bg-gradient-to-br from-rose-900 to-amber-900 flex flex-col items-center justify-center text-white gap-4">
-                      <Play className="w-10 h-10 ml-1" />
-                      <p className="font-body text-sm text-white/70">Vídeo será disponibilizado em breve</p>
-                    </div>
-                  )
-                ) : (
-                  <div className="aspect-video bg-gradient-to-br from-amber-50 to-rose-50 flex flex-col items-center justify-center gap-4 p-8">
-                    <FileText className="w-10 h-10 text-secondary" />
-                    <p className="font-display font-bold text-xl text-foreground text-center">{activeLesson.title}</p>
-                    {activeLesson.pdfUrl ? (
-                      <a href={activeLesson.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-semibold text-sm px-6 py-3 rounded-xl">
-                        Baixar PDF
-                      </a>
-                    ) : (
-                      <p className="font-body text-sm text-muted-foreground">PDF será disponibilizado em breve</p>
-                    )}
-                  </div>
-                )}
-                <div className="px-4 py-4 space-y-3">
-                  <div className="flex flex-col gap-3">
-                    <div>
-                      <p className="text-xs font-body text-accent font-semibold mb-1">{activeModule.icon} {activeModule.title}</p>
-                      <h2 className="font-display font-bold text-lg text-foreground">{activeLesson.title}</h2>
-                      {activeLesson.description && <p className="text-sm text-muted-foreground mt-1 font-body">{activeLesson.description}</p>}
-                    </div>
-                    <button
-                      onClick={isCurrentDone ? () => toggleCompleted(activeLesson.id) : markAndAdvance}
-                      className={`min-h-[48px] flex items-center justify-center gap-1.5 px-4 py-3 rounded-xl text-sm font-body font-semibold transition-all touch-manipulation ${
-                        isCurrentDone ? "bg-accent/10 text-accent" : "bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md"
-                      }`}
-                    >
-                      {isCurrentDone ? <CheckCircle2 className="w-4 h-4" /> : <Trophy className="w-4 h-4" />}
-                      {isCurrentDone ? "Concluída" : "Concluir Aula"}
-                    </button>
-                  </div>
-                  {activeLesson.duration && (
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-body">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>Duração: {activeLesson.duration}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div ref={navRef} className="flex gap-3">
-                <button
-                  onClick={() => prevEntry && selectLesson(prevEntry.module, prevEntry.lesson)}
-                  disabled={!prevEntry}
-                  className="flex-1 flex items-center gap-2 bg-card border border-border rounded-xl px-4 min-h-[48px] text-left touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <ChevronLeft className="w-5 h-5 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-muted-foreground uppercase">Anterior</p>
-                    <p className="font-body font-semibold text-xs text-foreground truncate">{prevEntry?.lesson.title ?? "—"}</p>
-                  </div>
-                </button>
-                <button
-                  onClick={() => nextEntry && selectLesson(nextEntry.module, nextEntry.lesson)}
-                  disabled={!nextEntry}
-                  className={`flex-1 flex items-center gap-2 rounded-xl px-4 min-h-[48px] text-right touch-manipulation disabled:opacity-40 disabled:cursor-not-allowed ${
-                    isCurrentDone && nextEntry ? "bg-gradient-to-r from-rose-600 to-amber-600 text-white" : "bg-card border border-border"
-                  }`}
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] uppercase">Próxima</p>
-                    <p className={`font-body font-semibold text-xs truncate ${isCurrentDone && nextEntry ? "text-white" : "text-foreground"}`}>{nextEntry?.lesson.title ?? "—"}</p>
-                  </div>
-                  <ChevronRight className="w-5 h-5 shrink-0" />
-                </button>
-              </div>
-            </div>
+
+          <TabsContent value="aula" className="flex-1 mt-0 px-4 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+            {lessonContent(true)}
           </TabsContent>
-      </div>
-      </Tabs>
-
-      {/* Desktop: original layout */}
-      <div className="hidden lg:block max-w-7xl mx-auto px-4 py-6 flex flex-col lg:flex-row gap-6">
-        <aside className="hidden lg:block lg:w-80 shrink-0">
-          <div className="lg:sticky lg:top-20 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display font-bold text-lg text-foreground flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-accent" />
-                Módulos
-              </h2>
-              <span className="text-xs font-body text-muted-foreground">
-                {completedCount}/{totalLessons} aulas
-              </span>
-            </div>
-            <DesktopModuleList
-              openModules={openModules}
-              toggleModule={toggleModule}
-              completed={completed}
-              toggleCompleted={toggleCompleted}
-              activeLesson={activeLesson}
-              selectLesson={selectLesson}
-            />
-          </div>
-        </aside>
-
-        <main className="flex-1 min-w-0">
-          <div className="space-y-6">
-            <div className="bg-card rounded-xl sm:rounded-2xl border border-border shadow-md overflow-hidden">
-              {activeLesson.type === "video" ? (
-                <div className="relative">
-                  {activeLesson.videoUrl ? (
-                    <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-                      <iframe
-                        src={activeLesson.videoUrl}
-                        title={activeLesson.title}
-                        className="absolute inset-0 w-full h-full border-0"
-                        loading="lazy"
-                        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                        allowFullScreen
-                      />
-                    </div>
-                  ) : (
-                    <div className="aspect-video bg-gradient-to-br from-rose-900 to-amber-900 flex flex-col items-center justify-center text-white gap-4">
-                      <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center">
-                        <Play className="w-10 h-10 ml-1" />
-                      </div>
-                      <p className="font-body text-sm text-white/70">
-                        Vídeo será disponibilizado em breve
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="aspect-video bg-gradient-to-br from-amber-50 to-rose-50 flex flex-col items-center justify-center gap-4 p-8">
-                  <div className="w-20 h-20 rounded-2xl bg-secondary/20 flex items-center justify-center">
-                    <FileText className="w-10 h-10 text-secondary" />
-                  </div>
-                  <p className="font-display font-bold text-xl text-foreground text-center">
-                    {activeLesson.title}
-                  </p>
-                  {activeLesson.pdfUrl ? (
-                    <a
-                      href={activeLesson.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 bg-gradient-to-r from-rose-600 to-amber-600 text-white font-semibold font-body text-sm px-6 py-3 rounded-xl shadow-lg hover:scale-105 transition-transform"
-                    >
-                      Baixar PDF
-                    </a>
-                  ) : (
-                    <p className="font-body text-sm text-muted-foreground">
-                      PDF será disponibilizado em breve
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="px-4 sm:px-5 md:px-6 py-4 sm:py-5 space-y-3">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
-                  <div>
-                    <p className="text-xs font-body text-accent font-semibold mb-1">
-                      {activeModule.icon} {activeModule.title}
-                    </p>
-                    <h2 className="font-display font-bold text-xl md:text-2xl text-foreground">
-                      {activeLesson.title}
-                    </h2>
-                    {activeLesson.description && (
-                      <p className="text-sm text-muted-foreground mt-1 font-body">
-                        {activeLesson.description}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={isCurrentDone ? () => toggleCompleted(activeLesson.id) : markAndAdvance}
-                    className={`shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-body font-semibold transition-all ${
-                      isCurrentDone
-                        ? "bg-accent/10 text-accent"
-                        : "bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-md hover:shadow-lg hover:scale-105"
-                    }`}
-                  >
-                    {isCurrentDone ? <CheckCircle2 className="w-4 h-4" /> : <Trophy className="w-4 h-4" />}
-                    {isCurrentDone ? "Concluída" : "Concluir Aula"}
-                  </button>
-                </div>
-
-                {activeLesson.duration && (
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-body">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>Duração: {activeLesson.duration}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div ref={navRef} className="flex gap-2 sm:gap-3">
-              <button
-                onClick={() => prevEntry && selectLesson(prevEntry.module, prevEntry.lesson)}
-                disabled={!prevEntry}
-                className="flex-1 flex items-center gap-2 bg-card border border-border rounded-xl px-4 py-3.5 text-left hover:shadow-md hover:border-accent/30 transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
-              >
-                <ChevronLeft className="w-5 h-5 text-muted-foreground shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[10px] text-muted-foreground font-body uppercase tracking-wide">Anterior</p>
-                  <p className="font-body font-semibold text-xs text-foreground truncate">
-                    {prevEntry?.lesson.title ?? "—"}
-                  </p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => nextEntry && selectLesson(nextEntry.module, nextEntry.lesson)}
-                disabled={!nextEntry}
-                className={`flex-1 flex items-center gap-2 rounded-xl px-4 py-3.5 text-right transition-all disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none ${
-                  isCurrentDone && nextEntry
-                    ? "bg-gradient-to-r from-rose-600 to-amber-600 text-white shadow-lg hover:shadow-xl hover:scale-[1.02]"
-                    : "bg-card border border-border hover:shadow-md hover:border-accent/30"
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <p className={`text-[10px] font-body uppercase tracking-wide ${isCurrentDone && nextEntry ? "text-white/70" : "text-muted-foreground"}`}>
-                    Próxima
-                  </p>
-                  <p className={`font-body font-semibold text-xs truncate ${isCurrentDone && nextEntry ? "text-white" : "text-foreground"}`}>
-                    {nextEntry?.lesson.title ?? "—"}
-                  </p>
-                </div>
-                <ChevronRight className={`w-5 h-5 shrink-0 ${isCurrentDone && nextEntry ? "text-white/70" : "text-muted-foreground"}`} />
-              </button>
-            </div>
-          </div>
-        </main>
+        </Tabs>
       </div>
 
+      {/* ===== DESKTOP (>= lg) ===== */}
+      <div className="hidden lg:flex flex-col min-h-screen">
+        <header className="sticky top-0 z-50 bg-gradient-to-r from-rose-500 to-amber-500 text-white shadow-lg">
+          <div className="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between">
+            <div>
+              <h1 className="font-bold text-xl leading-tight">Curso Redinha</h1>
+              <p className="text-white/70 text-xs">Área de Membros</p>
+            </div>
+            <div className="flex items-center gap-6">
+              <span className="flex items-center gap-1.5 text-xs text-white/70">
+                <Video className="w-4 h-4" /> {totalVideosRedinha} vídeos
+              </span>
+              <ProgressBar percent={pct} className="w-32" />
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 flex max-w-[1400px] mx-auto w-full">
+          {/* Sidebar */}
+          <aside className="w-80 shrink-0 border-r border-gray-200 bg-white overflow-y-auto" style={{ height: "calc(100vh - 3.5rem)", position: "sticky", top: "3.5rem" }}>
+            <div className="p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="font-bold text-base text-gray-800 flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-rose-500" />
+                  Módulos
+                </h2>
+                <span className="text-[11px] text-gray-400 font-medium">{doneCount}/{totalLessonsRedinha}</span>
+              </div>
+              {moduleList("desktop")}
+            </div>
+          </aside>
+
+          {/* Main */}
+          <main className="flex-1 min-w-0 p-6">
+            {lessonContent(false)}
+          </main>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default Redinha;
+}
