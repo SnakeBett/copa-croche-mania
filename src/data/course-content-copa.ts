@@ -20,7 +20,7 @@ const embed = (id: string) =>
   `https://iframe.mediadelivery.net/embed/405336/${id}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`;
 
 /** URL do PDF informativo (Boas-vindas). Uso em /areademembros/copabrasil */
-export const PDF_INFORMATIVO_URL = "/images/PDF%20INFORMATIVO%20CROCH%C3%AA.Pdf";
+export const PDF_INFORMATIVO_URL = "/images/pdf-informativo-croche.pdf";
 
 export const WELCOME_LESSON_ID = "copa-welcome-1";
 

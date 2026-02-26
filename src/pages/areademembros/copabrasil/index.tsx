@@ -144,13 +144,27 @@ const WelcomeBlock = ({ pdfUrl }: { pdfUrl: string }) => (
       </a>
     </div>
     <div className="border-t border-gray-700 bg-gray-950">
-      <p className="text-gray-400 text-xs px-4 py-2 uppercase tracking-wide">PDF aberto no site</p>
-      <div className="aspect-[4/3] min-h-[360px] w-full">
-        <iframe
-          src={`${pdfUrl}#view=FitH`}
-          title="PDF Informativo Crochê"
-          className="w-full h-full min-h-[360px] border-0"
-        />
+      <div className="w-full" style={{ height: "80vh", minHeight: 420 }}>
+        <object
+          data={pdfUrl}
+          type="application/pdf"
+          className="w-full h-full"
+        >
+          <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
+            <FileText className="w-12 h-12 text-gray-500" />
+            <p className="text-gray-400 text-sm text-center">
+              Seu navegador não suporta visualização de PDF.
+            </p>
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-emerald-600 text-white font-semibold text-sm px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors"
+            >
+              Abrir PDF em nova aba
+            </a>
+          </div>
+        </object>
       </div>
     </div>
   </div>
