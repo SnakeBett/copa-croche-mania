@@ -12,7 +12,15 @@ import {
   Trophy,
   Paperclip,
   Download,
+  ZoomIn,
+  ZoomOut,
+  Loader2,
 } from "lucide-react";
+import { Document, Page, pdfjs } from "react-pdf";
+import "react-pdf/dist/Page/AnnotationLayer.css";
+import "react-pdf/dist/Page/TextLayer.css";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   courseModulesCopa,
@@ -123,6 +131,107 @@ const ModuleCard = ({ mod, isOpen, onToggle, completed, toggleCompleted, activeL
   );
 };
 
+const PdfViewer = ({ url }: { url: string }) => {
+  const [numPages, setNumPages] = useState<number>(0);
+  const [pageNumber, setPageNumber] = useState(1);
+  const [scale, setScale] = useState(1.0);
+  const [loading, setLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const obs = new ResizeObserver(([entry]) => setContainerWidth(entry.contentRect.width));
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const pageWidth = containerWidth > 0 ? Math.min(containerWidth - 32, 900) * scale : undefined;
+
+  return (
+    <div ref={containerRef} className="bg-gray-950 rounded-b-xl">
+      <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-gray-800 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setPageNumber((p) => Math.max(1, p - 1))}
+            disabled={pageNumber <= 1}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-colors"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <span className="text-gray-300 text-xs font-medium tabular-nums min-w-[80px] text-center">
+            {pageNumber} / {numPages || "..."}
+          </span>
+          <button
+            onClick={() => setPageNumber((p) => Math.min(numPages, p + 1))}
+            disabled={pageNumber >= numPages}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-colors"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))}
+            disabled={scale <= 0.5}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-colors"
+          >
+            <ZoomOut className="w-4 h-4" />
+          </button>
+          <span className="text-gray-400 text-xs font-medium tabular-nums min-w-[40px] text-center">
+            {Math.round(scale * 100)}%
+          </span>
+          <button
+            onClick={() => setScale((s) => Math.min(2.5, +(s + 0.25).toFixed(2)))}
+            disabled={scale >= 2.5}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800 disabled:opacity-30 transition-colors"
+          >
+            <ZoomIn className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="overflow-auto px-4 py-6 flex justify-center" style={{ maxHeight: "75vh" }}>
+        {loading && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          </div>
+        )}
+        <Document
+          file={url}
+          onLoadSuccess={({ numPages: n }) => { setNumPages(n); setLoading(false); }}
+          onLoadError={() => setLoading(false)}
+          loading=""
+          className="flex flex-col items-center gap-4"
+        >
+          <Page
+            pageNumber={pageNumber}
+            width={pageWidth}
+            className="shadow-2xl rounded-lg overflow-hidden"
+            renderAnnotationLayer
+            renderTextLayer
+          />
+        </Document>
+      </div>
+
+      {numPages > 1 && (
+        <div className="flex justify-center gap-1.5 px-4 pb-4">
+          {Array.from({ length: numPages }, (_, i) => (
+            <button
+              key={i}
+              onClick={() => setPageNumber(i + 1)}
+              className={`w-2 h-2 rounded-full transition-all ${
+                pageNumber === i + 1 ? "bg-emerald-500 w-5" : "bg-gray-700 hover:bg-gray-500"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 const WelcomeBlock = ({ pdfUrl }: { pdfUrl: string }) => (
   <div className="bg-gray-900 rounded-xl overflow-hidden">
     <div className="p-5 sm:p-6 space-y-4">
@@ -143,29 +252,8 @@ const WelcomeBlock = ({ pdfUrl }: { pdfUrl: string }) => (
         <Download className="w-4 h-4 shrink-0 ml-auto" />
       </a>
     </div>
-    <div className="border-t border-gray-700 bg-gray-950">
-      <div className="w-full" style={{ height: "80vh", minHeight: 420 }}>
-        <object
-          data={pdfUrl}
-          type="application/pdf"
-          className="w-full h-full"
-        >
-          <div className="flex flex-col items-center justify-center h-full gap-4 p-6">
-            <FileText className="w-12 h-12 text-gray-500" />
-            <p className="text-gray-400 text-sm text-center">
-              Seu navegador não suporta visualização de PDF.
-            </p>
-            <a
-              href={pdfUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-emerald-600 text-white font-semibold text-sm px-6 py-3 rounded-xl hover:bg-emerald-700 transition-colors"
-            >
-              Abrir PDF em nova aba
-            </a>
-          </div>
-        </object>
-      </div>
+    <div className="border-t border-gray-700">
+      <PdfViewer url={pdfUrl} />
     </div>
   </div>
 );
