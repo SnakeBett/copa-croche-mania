@@ -19,7 +19,27 @@ export interface CourseModule {
 const embed = (id: string) =>
   `https://iframe.mediadelivery.net/embed/405336/${id}?autoplay=false&loop=false&muted=false&preload=true&responsive=true`;
 
+/** URL do PDF informativo (Boas-vindas). Uso em /areademembros/copabrasil */
+export const PDF_INFORMATIVO_URL = "/images/PDF%20INFORMATIVO%20CROCH%C3%AA.Pdf";
+
+export const WELCOME_LESSON_ID = "copa-welcome-1";
+
 export const courseModulesCopa: CourseModule[] = [
+  {
+    id: "copa-welcome",
+    icon: "👋",
+    title: "Boas-vindas",
+    description: "Acesso ao curso",
+    lessons: [
+      {
+        id: WELCOME_LESSON_ID,
+        title: "Aviso importante",
+        type: "pdf",
+        pdfUrl: PDF_INFORMATIVO_URL,
+        description: "Baixe o PDF informativo para saber do acesso ao seu curso.",
+      },
+    ],
+  },
   {
     id: "copa-mod1",
     icon: "👜",

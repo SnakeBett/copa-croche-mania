@@ -10,12 +10,15 @@ import {
   Video,
   CheckCircle2,
   Trophy,
+  Paperclip,
+  Download,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   courseModulesCopa,
   totalLessonsCopa,
   totalVideosCopa,
+  WELCOME_LESSON_ID,
   type Lesson,
   type CourseModule,
 } from "@/data/course-content-copa";
@@ -120,7 +123,43 @@ const ModuleCard = ({ mod, isOpen, onToggle, completed, toggleCompleted, activeL
   );
 };
 
+const WelcomeBlock = ({ pdfUrl }: { pdfUrl: string }) => (
+  <div className="bg-gray-900 rounded-xl overflow-hidden">
+    <div className="p-5 sm:p-6 space-y-4">
+      <p className="text-gray-400 text-xs font-medium uppercase tracking-wide">AVISO IMPORTANTE</p>
+      <h2 className="text-white font-bold text-xl sm:text-2xl uppercase">AVISO IMPORTANTE</h2>
+      <p className="text-white text-sm leading-relaxed">
+        BAIXE O PDF INFORMÁTIVO PARA SABER DO ACESSO AO SEU CURSO. Curso linha Brasil da copa em Crochê
+      </p>
+      <a
+        href={pdfUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        download
+        className="inline-flex items-center gap-2 w-full sm:w-auto border border-gray-500 rounded-lg px-4 py-3 text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+      >
+        <Paperclip className="w-4 h-4 shrink-0" />
+        <span>PDF INFORMATIVO.Pdf</span>
+        <Download className="w-4 h-4 shrink-0 ml-auto" />
+      </a>
+    </div>
+    <div className="border-t border-gray-700 bg-gray-950">
+      <p className="text-gray-400 text-xs px-4 py-2 uppercase tracking-wide">PDF aberto no site</p>
+      <div className="aspect-[4/3] min-h-[360px] w-full">
+        <iframe
+          src={`${pdfUrl}#view=FitH`}
+          title="PDF Informativo Crochê"
+          className="w-full h-full min-h-[360px] border-0"
+        />
+      </div>
+    </div>
+  </div>
+);
+
 const VideoPlayer = ({ lesson }: { lesson: Lesson }) => {
+  if (lesson.id === WELCOME_LESSON_ID && lesson.pdfUrl) {
+    return <WelcomeBlock pdfUrl={lesson.pdfUrl} />;
+  }
   if (lesson.type !== "video") {
     return (
       <div className="aspect-video bg-gradient-to-br from-emerald-50 to-blue-50 flex flex-col items-center justify-center gap-3 p-6">
