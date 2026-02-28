@@ -13,7 +13,7 @@ const gradients = [
 const BenefitsSection = () => (
   <SectionWrapper id="beneficios" maxWidth="lg" bg="card" center>
     <h2 className="text-2xl md:text-4xl font-bold text-foreground">
-      Benefícios da Apostila
+      Benefícios do Curso
     </h2>
 
     <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">

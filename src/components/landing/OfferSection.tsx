@@ -20,7 +20,7 @@ const OfferSection = () => (
 
         <div className="px-5 md:px-8 py-8 space-y-6 text-center">
           <div className="space-y-1">
-            <h2 className="text-2xl md:text-3xl font-bold font-display text-primary">Apostila Completa do Crochê</h2>
+            <h2 className="text-2xl md:text-3xl font-bold font-display text-primary">Curso Completo do Crochê</h2>
             <p className="text-muted-foreground font-body text-sm">
               Acesse agora todas as receitas e videoaulas para <br />vender na Copa do Mundo!
             </p>

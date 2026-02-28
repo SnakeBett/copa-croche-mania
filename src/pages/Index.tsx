@@ -77,8 +77,8 @@ const Index = () => {
       <ScrollReveal><BenefitsSection /></ScrollReveal>
       <ScrollReveal><IncomeSection /></ScrollReveal>
       {/* Decisao */}
-      <ScrollReveal><OfferSection /></ScrollReveal>
       <ScrollReveal><GiveawaySection /></ScrollReveal>
+      <ScrollReveal><OfferSection /></ScrollReveal>
       {/* Objecoes finais */}
       <ScrollReveal><FinalCTASection /></ScrollReveal>
       <Footer />

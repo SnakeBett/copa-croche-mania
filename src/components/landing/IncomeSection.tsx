@@ -18,7 +18,7 @@ const IncomeSection = () => (
         </div>
         <p className="text-xs font-body text-muted-foreground uppercase tracking-wider font-semibold">Investimento</p>
         <p className="text-4xl md:text-5xl font-bold font-display my-2 text-foreground">R$27</p>
-        <p className="text-sm font-body text-muted-foreground">na apostila completa</p>
+        <p className="text-sm font-body text-muted-foreground">no curso completo</p>
         <div className="mt-4 pt-3 border-t border-border/50">
           <p className="text-[11px] font-body text-muted-foreground/70">Menos que um almoço</p>
         </div>
