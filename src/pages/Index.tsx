@@ -16,6 +16,7 @@ import ScrollReveal from "@/components/landing/ScrollReveal";
 import FloatingConfetti from "@/components/landing/FloatingConfetti";
 import FloatingCTA from "@/components/landing/FloatingCTA";
 import ProductsGallerySection from "@/components/landing/ProductsGallerySection";
+import DemoPreviewSection from "@/components/landing/DemoPreviewSection";
 
 const SCROLL_OFFSET = 80;
 
@@ -78,6 +79,7 @@ const Index = () => {
       <ScrollReveal><IncomeSection /></ScrollReveal>
       {/* Decisao */}
       <ScrollReveal><GiveawaySection /></ScrollReveal>
+      <ScrollReveal><DemoPreviewSection /></ScrollReveal>
       <ScrollReveal><OfferSection /></ScrollReveal>
       {/* Objecoes finais */}
       <ScrollReveal><FinalCTASection /></ScrollReveal>

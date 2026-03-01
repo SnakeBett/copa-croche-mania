@@ -35,7 +35,7 @@ const FloatingCTA = () => {
     >
       <div className="bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-3">
         <a
-          href={SITE.offerLink}
+          href={SITE.ctaLink}
           className="block w-full bg-gradient-to-r from-emerald-700 to-blue-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl text-center shadow-lg active:scale-95 transition-transform font-body"
         >
           ⚽ QUERO ME PREPARAR PARA A COPA — {SITE.price}

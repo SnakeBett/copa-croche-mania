@@ -63,7 +63,7 @@ const IncomeSection = () => (
     </div>
 
     <div>
-      <CTAButton href={SITE.offerLink} variant="accent" socialProof>
+      <CTAButton href={SITE.ctaLink} variant="accent" socialProof>
         ⚽ Quero começar a lucrar
       </CTAButton>
     </div>

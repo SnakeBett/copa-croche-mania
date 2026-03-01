@@ -55,7 +55,7 @@ const OfferSection = () => (
           </div>
 
           <a
-            href={SITE.offerLink}
+            href={SITE.checkoutLink}
             className="block w-full bg-gradient-to-r from-emerald-700 to-blue-700 text-white font-bold text-base md:text-lg px-6 py-5 rounded-xl text-center hover:scale-105 active:scale-95 transition-all duration-300 font-body animate-[cta-breathe_4s_ease-in-out_infinite]"
           >
             ⚽ QUERO ME PREPARAR PARA A COPA

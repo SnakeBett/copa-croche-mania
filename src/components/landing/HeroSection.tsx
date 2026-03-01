@@ -54,7 +54,7 @@ const HeroSection = () => (
         </ul>
 
         <div className="flex flex-col items-center md:items-start gap-4">
-          <CTAButton href={SITE.offerLink} className="animate-[cta-breathe_4s_ease-in-out_infinite] text-base md:text-lg px-10 py-5">
+          <CTAButton href={SITE.ctaLink} className="animate-[cta-breathe_4s_ease-in-out_infinite] text-base md:text-lg px-10 py-5">
             ✨ QUERO COMEÇAR AGORA
           </CTAButton>
           <div className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground font-body">
@@ -84,7 +84,7 @@ const HeroSection = () => (
           />
         </div>
         <div className="absolute -bottom-3 -right-3 md:-bottom-4 md:-right-4 bg-secondary text-secondary-foreground font-bold font-body text-xs md:text-sm px-4 py-2 rounded-xl shadow-lg rotate-3">
-          R$27 apenas!
+          R$29 apenas!
         </div>
       </div>
     </div>

@@ -100,7 +100,7 @@ const ProductsGallerySection = () => {
       </div>
 
       <div className="text-center">
-        <CTAButton href={SITE.offerLink} socialProof>
+        <CTAButton href={SITE.ctaLink} socialProof>
           ⚽ Quero aprender a fazer essas peças
         </CTAButton>
       </div>

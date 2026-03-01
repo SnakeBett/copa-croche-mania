@@ -24,7 +24,7 @@ const ModulesSection = () => (
       <br />Mesmo que você nunca tenha vendido uma peça.
     </p>
 
-    <CTAButton href={SITE.offerLink} variant="accent" socialProof>
+    <CTAButton href={SITE.ctaLink} variant="accent" socialProof>
       ⚽ Quero aprender agora
     </CTAButton>
   </SectionWrapper>

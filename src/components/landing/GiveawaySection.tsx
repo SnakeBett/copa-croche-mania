@@ -169,7 +169,7 @@ const GiveawaySection = () => {
 
             {/* CTA */}
             <div className="space-y-2">
-              <CTAButton href={SITE.offerLink} variant="gradient-round">
+              <CTAButton href="#oferta" variant="gradient-round">
                 ⚽ QUERO GARANTIR MINHA VAGA
               </CTAButton>
               <p className="text-xs text-muted-foreground/60 font-body">
