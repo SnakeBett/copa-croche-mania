@@ -24,9 +24,9 @@ const FloatingCTA = () => {
           href={SITE.checkoutLink}
           className="block w-full bg-gradient-to-r from-emerald-700 to-blue-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl text-center shadow-lg active:scale-95 transition-transform font-body animate-[cta-breathe_4s_ease-in-out_infinite]"
         >
-          QUERO COMECAR AGORA — {SITE.price}
+          QUERO COMEÇAR AGORA — {SITE.price}
         </a>
-        <p className="text-[10px] text-center text-muted-foreground/60 font-body mt-1">Oferta por tempo limitado - Garantia 7 dias</p>
+        <p className="text-[10px] text-center text-muted-foreground/60 font-body mt-1">Oferta por tempo limitado · Garantia 7 dias</p>
       </div>
     </div>
   );

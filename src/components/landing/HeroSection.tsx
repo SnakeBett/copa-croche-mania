@@ -4,10 +4,10 @@ import CTAButton from "@/components/shared/CTAButton";
 import { ShieldCheck, Lock } from "lucide-react";
 
 const heroFeatures = [
-  "Receitas exclusivas de bolsas, sousplats e acessorios",
-  "Videoaulas passo a passo (do basico ao avancado)",
-  "Guia de precificacao + apresentacao para venda",
-  "Voce pode vender todas as pecas que criar",
+  "Receitas exclusivas de bolsas, sousplats e acessórios",
+  "Videoaulas passo a passo (do básico ao avançado)",
+  "Guia de precificação + apresentação para venda",
+  "Você pode vender todas as peças que criar",
 ];
 
 const avatars = [
@@ -68,11 +68,11 @@ const HeroSection = () => {
           </div>
 
           <h1 className="text-2xl md:text-[2.7rem] leading-tight font-bold text-foreground text-center md:text-left">
-            Em 7 dias, voce vai estar vendendo pecas de croche tematicas da Copa
-            <span className="text-accent"> — mesmo comecando do zero.</span>
+            Em 7 dias, você vai estar vendendo peças de crochê temáticas da Copa
+            <span className="text-accent"> — mesmo começando do zero.</span>
           </h1>
           <p className="text-base md:text-lg text-muted-foreground font-body leading-relaxed text-center md:text-left">
-            Aprenda a criar <strong>bolsas, sousplats e acessorios</strong> que as pessoas compram para torcer, decorar e presentear nos dias de jogo.
+            Aprenda a criar <strong>bolsas, sousplats e acessórios</strong> que as pessoas compram para torcer, decorar e presentear nos dias de jogo.
           </p>
 
           <ul className="space-y-2 font-body text-foreground text-sm md:text-base">
@@ -84,7 +84,6 @@ const HeroSection = () => {
             ))}
           </ul>
 
-          {/* Mini countdown */}
           <div className="flex items-center justify-center md:justify-start gap-2 font-body text-sm">
             <span className="text-muted-foreground">Oferta encerra em:</span>
             <div className="flex gap-1">
@@ -102,7 +101,7 @@ const HeroSection = () => {
 
           <div className="flex flex-col items-center md:items-start gap-3">
             <CTAButton href={SITE.checkoutLink} className="animate-[cta-breathe_4s_ease-in-out_infinite] text-base md:text-lg px-10 py-5">
-              QUERO COMECAR A VENDER NA COPA
+              QUERO COMEÇAR A VENDER NA COPA
             </CTAButton>
             <div className="flex items-center gap-3 text-xs md:text-sm text-muted-foreground font-body">
               <div className="flex -space-x-2">
@@ -116,7 +115,7 @@ const HeroSection = () => {
                 ))}
               </div>
               <span>
-                <strong className="text-foreground">689+ alunas</strong> ja se inscreveram
+                <strong className="text-foreground">689+ alunas</strong> já se inscreveram
               </span>
             </div>
             <div className="flex items-center gap-3 text-[11px] text-muted-foreground/70 font-body">
@@ -130,7 +129,7 @@ const HeroSection = () => {
         <div className="relative w-full max-w-sm mx-auto md:max-w-none">
           <div className="overflow-hidden rounded-2xl shadow-2xl border border-border/30 md:-rotate-2 md:hover:rotate-0 transition-transform duration-500">
             <img
-              alt="Croche nas cores do Brasil para a Copa"
+              alt="Crochê nas cores do Brasil para a Copa"
               className="w-full h-auto object-contain"
               src="/lovable-uploads/7489d8c3-66ca-44fa-ac39-1c19347716b8.png"
               loading="eager"

@@ -30,7 +30,7 @@ const FinalCTASection = () => (
 
     <div className="text-center space-y-4 pt-4">
       <p className="text-muted-foreground font-body text-base md:text-lg max-w-md mx-auto">
-        Ainda esta em duvida? Lembre-se: voce tem <strong className="text-foreground">7 dias de garantia</strong> para testar sem risco.
+        Ainda está em dúvida? Lembre-se: você tem <strong className="text-foreground">7 dias de garantia</strong> para testar sem risco.
       </p>
       <CTAButton href={SITE.checkoutLink} socialProof>
         QUERO GARANTIR MINHA VAGA AGORA
