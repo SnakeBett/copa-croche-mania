@@ -6,6 +6,7 @@ import OpportunitySection from "@/components/landing/OpportunitySection";
 import ModulesSection from "@/components/landing/ModulesSection";
 import BenefitsSection from "@/components/landing/BenefitsSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
+import GiveawaySection from "@/components/landing/GiveawaySection";
 import OfferSection from "@/components/landing/OfferSection";
 import AboutSection from "@/components/landing/AboutSection";
 import FinalCTASection from "@/components/landing/FinalCTASection";
@@ -65,6 +66,7 @@ const Index = () => {
       <ScrollReveal><OpportunitySection /></ScrollReveal>
       <ScrollReveal><ProductsGallerySection /></ScrollReveal>
       <ScrollReveal><TestimonialsSection /></ScrollReveal>
+      <ScrollReveal><GiveawaySection /></ScrollReveal>
       <ScrollReveal><OfferSection /></ScrollReveal>
       <ScrollReveal><AboutSection /></ScrollReveal>
       <ScrollReveal><ModulesSection /></ScrollReveal>
