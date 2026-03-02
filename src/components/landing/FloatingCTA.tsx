@@ -6,21 +6,7 @@ const FloatingCTA = () => {
 
   useEffect(() => {
     const onScroll = () => {
-      const scrollY = window.scrollY;
-      const offerEl = document.getElementById("oferta");
-
-      if (scrollY < 600) {
-        setVisible(false);
-        return;
-      }
-
-      if (offerEl) {
-        const rect = offerEl.getBoundingClientRect();
-        const offerVisible = rect.top < window.innerHeight && rect.bottom > 0;
-        setVisible(!offerVisible);
-      } else {
-        setVisible(true);
-      }
+      setVisible(window.scrollY > 400);
     };
 
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -33,13 +19,14 @@ const FloatingCTA = () => {
         visible ? "translate-y-0" : "translate-y-full"
       }`}
     >
-      <div className="bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-3">
+      <div className="bg-card/95 backdrop-blur-md border-t border-border shadow-[0_-4px_20px_rgba(0,0,0,0.1)] px-4 py-2.5">
         <a
-          href={SITE.ctaLink}
-          className="block w-full bg-gradient-to-r from-emerald-700 to-blue-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl text-center shadow-lg active:scale-95 transition-transform font-body"
+          href={SITE.checkoutLink}
+          className="block w-full bg-gradient-to-r from-emerald-700 to-blue-700 text-white font-bold text-sm px-6 py-3.5 rounded-xl text-center shadow-lg active:scale-95 transition-transform font-body animate-[cta-breathe_4s_ease-in-out_infinite]"
         >
-          ⚽ QUERO ME PREPARAR PARA A COPA — {SITE.price}
+          QUERO COMECAR AGORA — {SITE.price}
         </a>
+        <p className="text-[10px] text-center text-muted-foreground/60 font-body mt-1">Oferta por tempo limitado - Garantia 7 dias</p>
       </div>
     </div>
   );

@@ -4,19 +4,15 @@ import HeroSection from "@/components/landing/HeroSection";
 import ProblemSection from "@/components/landing/ProblemSection";
 import OpportunitySection from "@/components/landing/OpportunitySection";
 import ModulesSection from "@/components/landing/ModulesSection";
-import IncomeSection from "@/components/landing/IncomeSection";
 import BenefitsSection from "@/components/landing/BenefitsSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
-import GiveawaySection from "@/components/landing/GiveawaySection";
 import OfferSection from "@/components/landing/OfferSection";
 import AboutSection from "@/components/landing/AboutSection";
 import FinalCTASection from "@/components/landing/FinalCTASection";
 import Footer from "@/components/landing/Footer";
 import ScrollReveal from "@/components/landing/ScrollReveal";
-import FloatingConfetti from "@/components/landing/FloatingConfetti";
 import FloatingCTA from "@/components/landing/FloatingCTA";
 import ProductsGallerySection from "@/components/landing/ProductsGallerySection";
-import DemoPreviewSection from "@/components/landing/DemoPreviewSection";
 
 const SCROLL_OFFSET = 80;
 
@@ -63,25 +59,16 @@ const Index = () => {
   return (
     <main className="min-h-screen relative">
       <PromoBanner />
-      <FloatingConfetti />
       <FloatingCTA />
       <HeroSection />
-      {/* Emocao */}
       <ScrollReveal><ProblemSection /></ScrollReveal>
       <ScrollReveal><OpportunitySection /></ScrollReveal>
       <ScrollReveal><ProductsGallerySection /></ScrollReveal>
-      {/* Autoridade + prova social */}
-      <ScrollReveal><AboutSection /></ScrollReveal>
       <ScrollReveal><TestimonialsSection /></ScrollReveal>
-      {/* Logica e valor */}
+      <ScrollReveal><OfferSection /></ScrollReveal>
+      <ScrollReveal><AboutSection /></ScrollReveal>
       <ScrollReveal><ModulesSection /></ScrollReveal>
       <ScrollReveal><BenefitsSection /></ScrollReveal>
-      <ScrollReveal><IncomeSection /></ScrollReveal>
-      {/* Decisao */}
-      <ScrollReveal><GiveawaySection /></ScrollReveal>
-      <ScrollReveal><DemoPreviewSection /></ScrollReveal>
-      <ScrollReveal><OfferSection /></ScrollReveal>
-      {/* Objecoes finais */}
       <ScrollReveal><FinalCTASection /></ScrollReveal>
       <Footer />
     </main>
